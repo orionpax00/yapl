@@ -14,3 +14,7 @@ _C.OPTIMIZER.LR = 0.0001 #learning rate
 
 def get_cfg_defaults():
     return _C.clone()
+
+def print_h():
+
+    print("hello")
