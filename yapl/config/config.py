@@ -22,8 +22,12 @@ class Config:
     '''
 
     def __init__(self):
-        EXPERIMENT_NAME = 'example_1'
-        # self.GCS_DS_PATH = KaggleDatasets().get_gcs_path('<dataset-name>')
+        # General Experiment Params
+        self.EXPERIMENT_NAME = 'img_class_resner50_trail25'
+        self.DATATYPE = 'img' #img: if images; text: if textual; tabular: if csv tabular
+        self.PROBLEM_TYPE = 'classification' #classification, regression
+        
+        self.GCS_DS_PATH = KaggleDatasets().get_gcs_path('<dataset-name>')
         self.TRAIN_CSV = '../input/<dataset-name>/train.csv'
         self.TEST_CSV = '../input/<dataset-name>/test.csv'
         # self.TRAIN_FILES = tf.io.gfile.glob(GCS_DS_PATH + '<files>*')
@@ -33,11 +37,17 @@ class Config:
         self.TOTAL_TRAIN_IMG = 0
         self.TOTAL_TEST_IMG = 0
         
+        #Data specific information
+        self.INPUT_SHAPE = (128,128,3) #exam: image shape
+        self.NUM_CLASSES = 1 #one for binary classfication and regreesion
         self.IMG_SIZE = [1024, 1024]
-        self.IMG_RESHAPE = [512,512]
         self.IMG_SHAPE = (512, 512, 3)
+
+        #model specific
         self.DO_FINETUNE = True
         
+        
+        #Training information
         self.BATCH_SIZE = 8
         self.BUFFER_SIZE = 100
         self.EPOCHES = 10 
