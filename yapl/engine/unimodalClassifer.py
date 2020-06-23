@@ -7,19 +7,19 @@ from yapl.utils.accuracy import AverageBinaryAccuracyTorch
 from yapl.utils.loss import AverageLossTorch
 
 class Engine:
-    def __init__(self, model, dataloader):
+    def __init__(self, model, traindataloader, valdataloder = None, testdataloader=None):
         self.model = model
-        self.dataloader = dataloader
+        self.traindataloader = traindataloader
         self.config = yapl.config
 
-    def loopengine(self, istraining = True):
+    def loop(self):
         if yapl.backend == 'tf':
             history = []
             for epoch in range(self.config.EPOCHES):
                 epoch_loss_avg = tf.keras.metrics.Mean()
-                epoch_accuracy_avg = tf.keras.metrics.BinaryAccuracy()
+                epoch_accuracy_avg = tf.keras.metrics.AUC()
 
-                for it, (data_batch, label_batch) in enumerate(dataloader):
+                for it, (data_batch, label_batch) in enumerate(traindataloader):
                     with tf.GradientTape() as tape:
                         output = self.model(data_batch, training=True)
                         losses = self.config.LOSS(y_true = label_batch, y_pred=output)
@@ -28,18 +28,21 @@ class Engine:
                         epoch_loss_avg.update_state(losses)
                         epoch_accuracy_avg.update_state(label_batch, tf.squeeze(output))
 
-                print('Loss: {} | Accuracy: {}'.format(epoch_loss_avg.result(), epoch_accuracy_avg.result()))
+                print('{} - Loss: {} | Accuracy: {}'.format(epoch, epoch_loss_avg.result(), epoch_accuracy_avg.result()))
                 history.append((epoch_loss_avg.result(), epoch_accuracy_avg.result()))
             
-            return history
+                if valdataloder != None:
+                    # Do validation Loop
+
+            if testdataloader != None:
+                # Do prediction
 
         elif yapl.backend == 'torch':
-            if istraining:
-                self.model.train()
+            history = []
+            self.model.train()
+            for epoch in self.config.EPOCHES:
                 loss_avg = AverageLossTorch()
-
-                for (data_batch, label_batch) in dataloader:
-                    print(".", end='')
+                for (data_batch, label_batch) in traindataloader:
                     data_batch = data_batch.to(self.config.DEVICE, dtype=torch.float)
                     label_batch = label_batch.to(self.config.DEVICE, dtype=torch.float)
                     
@@ -51,16 +54,24 @@ class Engine:
                     self.config.OPTIMIZER.step()
                     
                     loss_avg.update(losses.item(), self.config.BATCH_SIZE)
+                    # TODO: implement AUC metrics
                     
                     del data_batch
                     del label_batch
                     
                     torch.cuda.empty_cache()
 
-                return loss_avg.avg
+                print("{} - LOSS: {}".format(epoch, loss_avg.avg))
+                history.append(loss_avg.avg)
+
+                if valdataloder != None:
+                # Do validation Loop
+
+            if testdataloader != None:
+                # Do prediction
 
 
-    def fitengine(self, istraining = True):
+    def fit(self, istraining = True):
         if yapl.backend == 'tf':
             self.model.compile(
                 optimizer=self.config.OPTIMIZER, 
@@ -71,10 +82,7 @@ class Engine:
                 self.dataloader, 
                 epochs=self.config.EPOCHES, 
                 steps_per_epoch=(self.config.TOTAL_TRAIN_IMG//self.config.BATCH_SIZE),
-        #         callbacks=[
-        #             Callbacks().checkpoint_logger(),
-        #             Callbacks().tesorboard_logger()
-        #         ]
+                # TODO: callbacks
             )
 
             return history
