@@ -3,7 +3,9 @@ import torch
 
 from PIL import Image
 
-class SimpleLoader:
+import yapl
+
+class SimpleTorch:
     def __init__(self, images, targets):
         self.images = images
         self.targets = targets
@@ -16,3 +18,15 @@ class SimpleLoader:
             "image" : torch.tensor(img, dtype=torch.float),
             'target' : torch.tensor(target, dtype=torch.long)
         }
+
+def getImageloader(image_paths, targets):
+    if yapl.backend == 'torch':
+        return SimpleTorch(
+            images=image_paths,
+            targets=targets
+        )
+    elif yapl.backend == 'tf':
+        pass
+    
+    else:
+        pass
