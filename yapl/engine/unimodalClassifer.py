@@ -57,7 +57,7 @@ class Engine:
 
             history = []
             self.model.train()
-            for epoch in self.config.EPOCHES:
+            for epoch in range(self.config.EPOCHES):
                 loss_avg = AverageLossTorch()
                 for (data_batch, label_batch) in self.traindataloader:
                     data_batch = data_batch.to(self.config.DEVICE, dtype=torch.float)
